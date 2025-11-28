@@ -1,0 +1,19 @@
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+  "email": "alexis@example.com",
+  "password": "admin123"
+}
+
+###
+GET http://localhost:3001/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mjk1NzQ4LCJleHAiOjE3NjQ5MDA1NDh9.SdjzcWdpsoCYWB1GeeW-nAUJJMbkRg4nWquEea4M6u4
+
+###
+POST /users/set-role
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mjk1NzQ4LCJleHAiOjE3NjQ5MDA1NDh9.SdjzcWdpsoCYWB1GeeW-nAUJJMbkRg4nWquEea4M6u4
+{
+  "id": 1,
+  "role": "admin"
+}
