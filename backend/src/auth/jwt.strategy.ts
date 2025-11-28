@@ -8,13 +8,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // 1) Leer token desde encabezado Authorization
         ExtractJwt.fromAuthHeaderAsBearerToken(),
 
-        // 2) Leer token desde la cookie llamada "token"
-        (req: Request) => {
-          return req?.cookies?.token ?? null;
-        }
+        (req: Request) => req?.cookies?.token || null,
       ]),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
@@ -22,6 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return payload; 
+    return payload;
   }
 }
+

@@ -16,18 +16,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   getRequest(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
-    // Buscar token en cookie si no viene en Authorization
-    let token = request.headers.authorization;
+    const token = request.cookies?.token;
 
-    if (!token && request.cookies?.token) {
-      request.headers.authorization = `Bearer ${request.cookies.token}`;
+    if (token) {
+      request.headers.authorization = `Bearer ${token}`;
     }
 
     return request;
   }
 
   canActivate(context: ExecutionContext) {
-    // Permitir rutas públicas
     const isPublic = this.reflector.getAllAndOverride<boolean>(
       IS_PUBLIC_KEY,
       [context.getHandler(), context.getClass()],
@@ -38,3 +36,4 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 }
+

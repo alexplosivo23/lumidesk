@@ -24,20 +24,22 @@ export class AuthController {
   ) {
     const result = await this.authService.login(email, password);
 
-    // SET COOKIE CORRECTAMENTE
-    res.cookie("Authentication", result.access_token, {
+    res.cookie("token", result.access_token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
       path: "/",
     });
 
-    return { message: "ok" };
+    return {
+      access_token: result.access_token,
+      user: result.user,
+    };
   }
 
   @Get("profile")
   @UseGuards(JwtAuthGuard)
-  getProfile(@Req() req: Request & { user: any }) {
+  getProfile(@Req() req: any) {
     return this.authService.getProfile(req.user.sub);
   }
 }

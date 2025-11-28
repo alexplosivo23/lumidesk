@@ -24,7 +24,10 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://localhost:3001/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",   // 🔥🔥 SOLUCIÓN
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ email, password }),
       });
 
@@ -36,11 +39,9 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      console.log("TOKEN RECIBIDO:", data.access_token);
-
+      // Guarda token si existe (en caso de que quieras usarlo)
       login(data.access_token);
 
-      // Redirección según rol
       if (data.user.role === "admin" || data.user.role === "agent") {
         router.push("/desk/home");
       } else {
