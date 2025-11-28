@@ -1,65 +1,66 @@
-export async function fetchAllTickets() {
-  try {
-    const res = await fetch("http://localhost:3001/tickets/all", {
-      method: "GET",
-      credentials: "include",     // <—— IMPORTANTE
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      cache: "no-store",
-    });
+// lib/api/tickets.ts
 
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(txt || "Error al obtener los tickets");
-    }
+const API_URL = "http://localhost:3001"; // 👈 TU BACKEND REAL
 
-    return await res.json();
-  } catch (err) {
-    console.error("FETCH ALL TICKETS ERROR:", err);
-    throw err;
-  }
-}
-
-export async function getTicketById(id) {
-  const res = await fetch(`http://localhost:3001/tickets/${id}`, {
-    method: "GET",
-    credentials: "include",
+// =============================================================================
+// Obtener cookie
+// =============================================================================
+function getOptions() {
+  return {
+    credentials: "include" as const,
     headers: {
       "Content-Type": "application/json",
-      Accept: "application/json",
     },
-    cache: "no-store",
+  };
+}
+
+// =============================================================================
+// Obtener mis tickets
+// =============================================================================
+export async function getMyTickets() {
+  const res = await fetch(`${API_URL}/tickets/my`, {
+    ...getOptions(),
   });
 
-  if (!res.ok) throw new Error("Error al obtener ticket");
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-export async function updateTicketStatus(ticketId, status) {
-  const res = await fetch(`http://localhost:3001/tickets/status`, {
+// =============================================================================
+// Crear ticket
+// =============================================================================
+export async function createTicket(data: any) {
+  const res = await fetch(`${API_URL}/tickets`, {
     method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ticketId, status }),
+    ...getOptions(),
+    body: JSON.stringify(data),
   });
 
-  if (!res.ok) throw new Error("Error al actualizar estado");
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
-export async function getTicketTimeline(id: string | number) {
-  const res = await fetch(`http://localhost:3001/tickets/${id}/timeline`, {
-    method: "GET",
-    credentials: "include",
+
+// =============================================================================
+// Obtener ticket por ID
+// =============================================================================
+export async function getTicketById(id: number | string) {
+  const res = await fetch(`${API_URL}/tickets/${id}`, {
+    ...getOptions(),
   });
 
-  if (!res.ok) {
-    throw new Error("Error al obtener el historial del ticket");
-  }
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
 
+// =============================================================================
+// Obtener timeline
+// =============================================================================
+export async function getTicketTimeline(id: number | string) {
+  const res = await fetch(`${API_URL}/tickets/${id}/timeline`, {
+    ...getOptions(),
+  });
+
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
