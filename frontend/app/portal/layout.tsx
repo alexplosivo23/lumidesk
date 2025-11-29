@@ -1,25 +1,40 @@
-// app/portal/layout.tsx
-import "../globals.css";
 import Link from "next/link";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* HEADER */}
-      <header className="w-full bg-white border-b shadow-sm py-3 px-6 flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Portal de Usuario</h1>
-        <nav className="flex gap-6">
-          <Link href="/portal/tickets" className="text-blue-600 hover:underline">
-            Mis Tickets
+
+      {/* NAVBAR SUPERIOR */}
+      <header className="bg-white shadow py-4">
+        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
+          
+          {/* LOGO / TITULO */}
+          <Link href="/portal/tickets" className="text-xl font-semibold text-blue-700">
+            Portal de Tickets
           </Link>
-          <Link href="/portal/tickets/new" className="text-blue-600 hover:underline">
-            Crear Ticket
-          </Link>
-        </nav>
+
+          {/* NAV LINKS */}
+          <nav className="flex gap-6 text-sm font-medium">
+
+            <Link href="/portal/tickets" className="hover:text-blue-600">
+              Mis Tickets
+            </Link>
+
+            <Link href="/portal/tickets/create" className="hover:text-blue-600">
+              Crear Ticket
+            </Link>
+
+            <Link href="/" className="hover:text-red-600">
+              Cerrar Sesión
+            </Link>
+          </nav>
+        </div>
       </header>
 
       {/* CONTENIDO */}
-      <main className="max-w-4xl mx-auto py-8 px-4">{children}</main>
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        {children}
+      </main>
     </div>
   );
 }

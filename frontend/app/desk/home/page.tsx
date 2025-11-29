@@ -45,7 +45,7 @@ export default function DeskHomePage() {
 
                 <td className="py-2 pr-4">
                   <Link
-                    href={`/desk/home/${t.id}`}
+                    href={`/desk/tickets/${t.id}`}
                     className="text-blue-600 hover:underline"
                   >
                     {t.title}

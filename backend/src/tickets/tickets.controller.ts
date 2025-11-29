@@ -10,24 +10,19 @@ import {
 
 import { TicketsService } from './tickets.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Roles } from '../auth/roles.decorator';
-import { RolesGuard } from '../auth/roles.guard';
 import { User } from '../auth/user.decorator';
 
 @Controller('tickets')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class TicketsController {
   constructor(private ticketService: TicketsService) {}
 
   @Post('create')
-  createTicket(
-    @User() user,
-    @Body('title') title: string,
-    @Body('description') description: string,
-    @Body('priority') priority: string,
-    @Body('sla') sla: string,
-    @Body('categoryId') categoryId?: number,
-  ) {
+  createTicket(@User() user, @Body() body: any) {
+    console.log("BODY RECIBIDO ===>", body);
+
+    const { title, description, priority, sla, categoryId } = body;
+
     return this.ticketService.createTicket(
       user.sub,
       title,
@@ -37,6 +32,7 @@ export class TicketsController {
       categoryId,
     );
   }
+
 
   @Get('my')
   getMyTickets(@User() user) {
@@ -59,7 +55,7 @@ export class TicketsController {
     @Body('ticketId') ticketId: number,
     @Body('agentId') agentId: number,
   ) {
-    return this.ticketService.assignTicket(ticketId, agentId, user.role);
+    return this.ticketService.assignTicket(ticketId, agentId, user.role, user.sub);
   }
 
   @Post('status')
@@ -68,7 +64,7 @@ export class TicketsController {
     @Body('ticketId') ticketId: number,
     @Body('status') status: string,
   ) {
-    return this.ticketService.updateStatus(ticketId, status, user.role);
+    return this.ticketService.updateStatus(ticketId, status, user.role, user.sub);
   }
 
   // Obtener timeline de un ticket

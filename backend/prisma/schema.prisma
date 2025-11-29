@@ -102,10 +102,11 @@ model Comment {
   ticketId  Int
   authorId  Int
   message   String
+  isInternal Boolean @default(false)
   createdAt DateTime @default(now())
 
-  ticket Ticket @relation(fields: [ticketId], references: [id])
-  author User   @relation(fields: [authorId], references: [id])
+  ticket   Ticket   @relation(fields: [ticketId], references: [id])
+  author   User     @relation(fields: [authorId], references: [id])
 }
 
 model Attachment {

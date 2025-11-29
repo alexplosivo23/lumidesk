@@ -59,6 +59,12 @@ export class TicketsService {
     sla?: string,
     categoryId?: number,
   ) {
+    if (!title || !description) {
+      throw new Error("Title and description are required");
+    }
+
+    if (!priority) priority = "P3";
+
     if (!sla && categoryId) {
       const category = await this.prisma.category.findUnique({
         where: { id: categoryId },
@@ -90,6 +96,7 @@ export class TicketsService {
 
     return ticket;
   }
+
 
   // ========================================
   // Tickets del usuario

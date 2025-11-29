@@ -1,8 +1,12 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const User = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
+  (data: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    return request.user; // viene de JwtStrategy.validate()
+    const user = request.user;
+
+    if (!user) return null;
+
+    return data ? user[data] : user;
   },
 );

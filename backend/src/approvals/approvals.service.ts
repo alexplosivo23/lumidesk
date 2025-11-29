@@ -78,9 +78,24 @@ export class ApprovalsService {
       },
     });
 
-    // Si NO tiene step → es manual, termina acá
+    // registrar actividad en timeline
+    await this.prisma.ticketActivity.create({
+      data: {
+        ticketId: approval.ticketId,
+        type: 'approval',
+        message: `Aprobación realizada por el usuario ${approverId}`,
+        userId: approverId,
+      },
+    });
+
+    // Si NO tiene step → es aprobación manual
     if (!approval.step) {
-      return { success: true };
+      await this.prisma.ticket.update({
+        where: { id: approval.ticketId },
+        data: { status: 'approved' },
+      });
+
+      return { success: true, final: true };
     }
 
     // Buscar siguiente paso del flujo
@@ -128,7 +143,7 @@ export class ApprovalsService {
       throw new ForbiddenException('No eres el aprobador de este paso');
     }
 
-    return this.prisma.ticketApproval.update({
+    const updated = await this.prisma.ticketApproval.update({
       where: { id: approvalId },
       data: {
         status: 'rejected',
@@ -136,8 +151,19 @@ export class ApprovalsService {
         approvedAt: new Date(),
       },
     });
-  }
 
+    // registrar actividad en timeline
+    await this.prisma.ticketActivity.create({
+      data: {
+        ticketId: approval.ticketId,
+        type: 'rejection',
+        message: `Rechazo realizado por el usuario ${approverId}`,
+        userId: approverId,
+      },
+    });
+
+    return updated;
+  }
   // Aprobaciones de un ticket
   async getApprovalsByTicket(ticketId: number) {
     return this.prisma.ticketApproval.findMany({

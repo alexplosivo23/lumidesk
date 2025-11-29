@@ -10,7 +10,7 @@ export default function PortalHome() {
       </p>
 
       <Link
-        href="/portal/tickets/new"
+        href="/portal/tickets/create"
         className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
       >
         Crear un nuevo ticket

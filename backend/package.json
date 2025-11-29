@@ -29,6 +29,7 @@
     "@nestjs/schedule": "^6.0.1",
     "@prisma/client": "^6.19.0",
     "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.1",
     "cookie-parser": "^1.4.7",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
