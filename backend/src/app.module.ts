@@ -1,36 +1,29 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { TicketsModule } from './tickets/tickets.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { SuperadminModule } from './superadmin/superadmin.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { HelpdesksModule } from './helpdesks/helpdesks.module';
+import { TicketsModule } from './tickets/tickets.module';
+import { CategoriesModule } from './categories/categories.module';
 import { CommentsModule } from './comments/comments.module';
 import { AttachmentsModule } from './attachments/attachments.module';
-import { CategoriesModule } from './categories/categories.module';
-import { ScheduleModule } from '@nestjs/schedule';
-import { ApprovalsModule } from './approvals/approvals.module';
+import { RolesModule } from './roles/roles.module';
+import { PortalModule } from './portal/portal.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-
     PrismaModule,
-    UserModule,
+    SuperadminModule,
     AuthModule,
+    UsersModule,
     TicketsModule,
+    HelpdesksModule,
+    CategoriesModule,
     CommentsModule,
     AttachmentsModule,
-    CategoriesModule,
-    ScheduleModule.forRoot(),
-    ApprovalsModule,
+    RolesModule,
+    PortalModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

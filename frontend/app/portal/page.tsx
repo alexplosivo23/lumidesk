@@ -1,20 +1,46 @@
-// app/portal/page.tsx
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState } from "react";
+import { getHelpdesks, getSettings } from "@/lib/api/portal";
 
 export default function PortalHome() {
-  return (
-    <div className="text-center">
-      <h2 className="text-2xl font-bold mb-4">Bienvenido al Portal de Tickets</h2>
-      <p className="text-gray-600 mb-8">
-        Aquí podrás crear tickets y ver el estado de tus solicitudes.
-      </p>
+  const [helpdesks, setHelpdesks] = useState([]);
+  const [settings, setSettings] = useState<any>(null);
 
-      <Link
-        href="/portal/tickets/create"
-        className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700"
-      >
-        Crear un nuevo ticket
-      </Link>
+  useEffect(() => {
+    async function load() {
+      setHelpdesks(await getHelpdesks());
+      setSettings(await getSettings());
+    }
+    load();
+  }, []);
+
+  if (!settings) return <p>Cargando...</p>;
+
+  return (
+    <div>
+      {/* Título */}
+      <h1 className="text-2xl font-semibold mb-6">
+        Bienvenido a {settings.companyName}
+      </h1>
+
+      {/* Mesas de ayuda */}
+      <h2 className="text-lg font-medium mb-4">Mesas de Ayuda</h2>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        {helpdesks.map((h: any) => (
+          <a
+            key={h.id}
+            href={`/portal/helpdesks/${h.id}`}
+            className="bg-white p-6 rounded-xl shadow hover:shadow-md transition border border-gray-100"
+          >
+            <h3 className="text-xl font-semibold mb-1">{h.name}</h3>
+            <p className="text-sm text-gray-600">Ver categorías y enviar solicitudes</p>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
+
+

@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://localhost:3001/auth/login", {
         method: "POST",
-        credentials: "include",   // 🔥🔥 SOLUCIÓN
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -39,13 +39,26 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      // Guarda token si existe (en caso de que quieras usarlo)
-      login(data.access_token);
+      // Guardar token (opcional si usas cookies)
+      login(data.token);
 
-      if (data.user.role === "admin" || data.user.role === "agent") {
-        router.push("/desk/home");
-      } else {
-        router.push("/portal/home");
+      const role = data.user.role;
+
+      // Redirección basada en rol
+      switch (role) {
+        case "superadmin":
+          router.push("/superadmin");
+          break;
+        case "supervisor":
+          router.push("/supervisor");
+          break;
+        case "agent":
+          router.push("/desk");
+          break;
+        case "user":
+        default:
+          router.push("/portal");
+          break;
       }
 
     } catch (err) {
@@ -58,10 +71,12 @@ export default function LoginPage() {
   return (
     <div className="flex items-center justify-center h-screen bg-[#F9FAFB]">
       <Card className="w-[380px] shadow-xl border border-gray-200 bg-white">
-        <CardHeader>
-          <CardTitle className="text-center text-3xl font-extrabold text-[#303a4b] tracking-tight">
-            Lumidesk
-          </CardTitle>
+        <CardHeader className="flex justify-center items-center">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-10 w-auto"
+          />
         </CardHeader>
 
         <CardContent>
@@ -104,7 +119,7 @@ export default function LoginPage() {
             </Button>
 
             <p className="text-center text-gray-500 text-sm">
-              Sistema de Tickets
+              Sistema interno
             </p>
           </form>
         </CardContent>
@@ -112,3 +127,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

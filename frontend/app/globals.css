@@ -124,15 +124,15 @@
    VARIABLES DE COLOR
 ================================ */
 :root {
-  --primary: #2563eb;     /* Azul profesional */
-  --primary-dark: #1d4ed8;
-  --primary-light: #3b82f6;
+  --primary: #0056A6;
+  --primary-dark: #00498F;
+  --primary-light: #0077CC;
 
   --success: #16a34a;
   --warning: #facc15;
   --danger: #dc2626;
 
-  --gray-light: #f3f4f6;
+  --gray-light: #f7f8fa;
   --gray: #9ca3af;
   --gray-dark: #4b5563;
 }
@@ -216,4 +216,47 @@ select:focus {
 h1, h2, h3 {
   font-weight: 700;
   letter-spacing: -0.5px;
+}
+
+.fade-in {
+  animation: fadeIn 0.35s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hover-raise {
+  transition: 0.25s ease;
+}
+
+.hover-raise:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px #00000022 !important;
+}
+
+.dark {
+  --background: #1a1c1e;
+  --foreground: #e5e7eb;
+
+  --primary: #4ea8ff;
+  --primary-dark: #1c7ed6;
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark .card {
+  background-color: #26282b;
+  border-color: #333;
+  color: #e5e7eb;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #2e3033;
+  border-color: #444;
+  color: #e5e7eb;
 }

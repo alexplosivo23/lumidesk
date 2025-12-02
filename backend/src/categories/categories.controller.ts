@@ -1,46 +1,60 @@
-import { Controller, Post, Body, Get, Param, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
+
 import { CategoriesService } from './categories.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('categories')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CategoriesController {
-  constructor(private service: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) {}
 
-  // Crear categoría raíz
-  @Post()
-  create(@Body('name') name: string) {
-    return this.service.create(name);
-  }
-
-  // Crear subcategoría
-  @Post('subcategory')
-  createSub(
-    @Body('name') name: string,
-    @Body('parentId') parentId: number,
-  ) {
-    return this.service.createSubcategory(name, Number(parentId));
-  }
-
-  // Listar categorías
   @Get()
-  getAll() {
-    return this.service.getAll();
+  @Roles('superadmin', 'supervisor')
+  findAll() {
+    return this.categoriesService.findAll();
   }
 
-  // Asignar categoría a ticket
-  @Patch('ticket/:id')
-  assignCategory(
-    @Param('id') ticketId: number,
-    @Body('categoryId') categoryId: number,
-  ) {
-    return this.service.assignCategoryToTicket(Number(ticketId), Number(categoryId));
+  @Get('helpdesk/:helpdeskId')
+  @Roles('superadmin', 'supervisor', 'agent')
+  findByHelpdesk(@Param('helpdeskId') helpdeskId: string) {
+    return this.categoriesService.findByHelpdesk(Number(helpdeskId));
   }
 
-  // Actualizar SLA por defecto
-  @Patch('sla/:id')
-  updateSla(
-    @Param('id') id: number,
-    @Body('sla') sla: string,
-  ) {
-    return this.service.updateSla(Number(id), sla);
+  @Get(':id')
+  @Roles('superadmin', 'supervisor', 'agent')
+  findOne(@Param('id') id: string) {
+    return this.categoriesService.findOne(Number(id));
+  }
+
+  @Post()
+  @Roles('superadmin')
+  create(@Body() dto: CreateCategoryDto) {
+    return this.categoriesService.create(dto);
+  }
+
+  @Patch(':id')
+  @Roles('superadmin')
+  update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    return this.categoriesService.update(Number(id), dto);
+  }
+
+  @Delete(':id')
+  @Roles('superadmin')
+  remove(@Param('id') id: string) {
+    return this.categoriesService.remove(Number(id));
   }
 }

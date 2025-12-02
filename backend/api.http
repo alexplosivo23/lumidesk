@@ -9,66 +9,14 @@ Content-Type: application/json
   "password": "admin123"
 }
 
-### Usuario token
-### Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiYWdlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTc2NDM3ODM1OCwiZXhwIjoxNzY0OTgzMTU4fQ.2YRGTmZ8tWaZy5zDejE4ymOBqXIbSW-lnuWOEUaexqM
-POST http://localhost:3001/auth/login
-Content-Type: application/json
-
-{
-  "email": "agent@example.com",
-  "password": "agent123"
-}
-
-### Crear ticket
-POST http://localhost:3001/tickets/create
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiYWdlbnRAZXhhbXBsZS5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTc2NDM3ODM1OCwiZXhwIjoxNzY0OTgzMTU4fQ.2YRGTmZ8tWaZy5zDejE4ymOBqXIbSW-lnuWOEUaexqM
-Content-Type: application/json
-
-{
-  "title": "No imprime la impresora",
-  "description": "La impresora HP deja de responder",
-  "priority": "P2",
-  "sla": "P2",
-  "categoryId": 1
-}
-
-### Ver mis tickets usuarios
-GET http://localhost:3001/tickets/1/timeline
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mzc4MzMyLCJleHAiOjE3NjQ5ODMxMzJ9.icbgLYqmSb3XTLvWO4bA-JUrwRKVTQz6_iHk0oCrXn4 
-
-### Comentario publico
-POST http://localhost:3001/comments/add
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mzc4MzMyLCJleHAiOjE3NjQ5ODMxMzJ9.icbgLYqmSb3XTLvWO4bA-JUrwRKVTQz6_iHk0oCrXn4 
-Content-Type: application/json
-
-{
-  "ticketId": 1,
-  "message": "Interno",
-  "internal": true
-}
-
-### solicitar aprobacion
-POST http://localhost:3001/approvals/request
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mzc4MzMyLCJleHAiOjE3NjQ5ODMxMzJ9.icbgLYqmSb3XTLvWO4bA-JUrwRKVTQz6_iHk0oCrXn4 
-Content-Type: application/json
-
-{
-  "ticketId": 1,
-  "approverId": 3,
-  "comment": "Necesito autorización"
-}
-
-### Aprobar
-POST http://localhost:3001/approvals/reject
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mzc4MzMyLCJleHAiOjE3NjQ5ODMxMzJ9.icbgLYqmSb3XTLvWO4bA-JUrwRKVTQz6_iHk0oCrXn4 
-Content-Type: application/json
-
-{
-  "approvalId": 1,
-  "approverId": 1
-}
-
 ###
-GET http://localhost:3001/approvals/ticket/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWxleGlzQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY0Mzc4MzMyLCJleHAiOjE3NjQ5ODMxMzJ9.icbgLYqmSb3XTLvWO4bA-JUrwRKVTQz6_iHk0oCrXn4 
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin",
+  "email": "admin@intradesk.com",
+  "password": "admin123",
+  "role": "superadmin"
+}
 

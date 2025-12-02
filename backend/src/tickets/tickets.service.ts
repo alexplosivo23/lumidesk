@@ -1,225 +1,96 @@
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
-// ========================
-// Calcular SLA
-// ========================
-function calculateDueAt(sla: string | null | undefined): Date | null {
-  if (!sla) return null;
-
-  const now = new Date();
-
-  switch (sla) {
-    case 'P1':
-      return new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2h
-    case 'P2':
-      return new Date(now.getTime() + 8 * 60 * 60 * 1000); // +8h
-    case 'P3':
-      return new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24h
-    default:
-      return null;
-  }
-}
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 
 @Injectable()
 export class TicketsService {
   constructor(private prisma: PrismaService) {}
 
-  // ========================================
-  // Registrar actividad en el ticket
-  // ========================================
-  private async logActivity(
-    ticketId: number,
-    type: string,
-    message: string,
-    userId?: number,
-  ) {
-    return this.prisma.ticketActivity.create({
-      data: {
-        ticketId,
-        type,
-        message,
-        userId: userId ?? null,
-      },
-    });
-  }
+  async findFiltered(query: any, user: any) {
+  const where: any = {};
 
-  // ========================================
-  // Crear ticket
-  // ========================================
-  async createTicket(
-    userId: number,
-    title: string,
-    description: string,
-    priority: string,
-    sla?: string,
-    categoryId?: number,
-  ) {
-    if (!title || !description) {
-      throw new Error("Title and description are required");
+    // tickets asignados a mí
+    if (query.assigned === "me") {
+      where.agentId = user.id;
     }
 
-    if (!priority) priority = "P3";
-
-    if (!sla && categoryId) {
-      const category = await this.prisma.category.findUnique({
-        where: { id: categoryId },
-      });
-
-      sla = category?.defaultSla ?? undefined;
+    // tickets sin asignar
+    if (query.unassigned === "true") {
+      where.agentId = null;
     }
 
-    const dueAt = calculateDueAt(sla);
-
-    const ticket = await this.prisma.ticket.create({
-      data: {
-        title,
-        description,
-        priority,
-        sla: sla ?? null,
-        dueAt,
-        categoryId: categoryId ?? null,
-        createdById: userId,
-      },
-    });
-
-    await this.logActivity(
-      ticket.id,
-      'create',
-      `Ticket creado por el usuario ${userId}`,
-      userId,
-    );
-
-    return ticket;
-  }
-
-
-  // ========================================
-  // Tickets del usuario
-  // ========================================
-  async getMyTickets(userId: number) {
     return this.prisma.ticket.findMany({
-      where: { createdById: userId },
+      where,
+      include: {
+        user: true,
+        category: { include: { helpdesk: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  // ========================================
-  // Todos los tickets (solo agente/admin)
-  // ========================================
-  async getAllTickets(role: string) {
-    if (role === 'user') {
-      throw new ForbiddenException('Solo agentes o administradores');
-    }
-
+  async findAll() {
     return this.prisma.ticket.findMany({
+      include: {
+        user: true,
+        category: { include: { helpdesk: true } },
+      },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findMine(userId: number) {
+    return this.prisma.ticket.findMany({
+      where: { userId },
       include: {
         category: true,
-        createdBy: true,
-        assignedTo: true,
       },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  // ========================================
-  // Obtener ticket por ID (detalle)
-  // ========================================
-  async getTicketById(id: number, userId: number, role: string) {
+  async findOne(id: number) {
     const ticket = await this.prisma.ticket.findUnique({
       where: { id },
       include: {
-        category: true,
-        createdBy: true,
-        assignedTo: true,
+        user: true,
+        category: { include: { helpdesk: true } },
+        comments: {
+          include: { user: true },
+          orderBy: { createdAt: 'asc' },
+        },
+        attachments: true,
       },
     });
 
     if (!ticket) throw new NotFoundException('Ticket no encontrado');
 
-    if (role === 'user' && ticket.createdById !== userId) {
-      throw new ForbiddenException('No puedes ver este ticket');
-    }
-
-    return {
-      id: ticket.id,
-      title: ticket.title,
-      description: ticket.description,
-      status: ticket.status,
-      priority: ticket.priority,
-      sla: ticket.sla,
-      createdAt: ticket.createdAt,
-
-      categoryName: ticket.category?.name ?? null,
-
-      createdByName: ticket.createdBy?.name ?? null,
-      assignedToName: ticket.assignedTo?.name ?? null,
-    };
+    return ticket;
   }
 
-  // ========================================
-  // Asignar ticket
-  // ========================================
-  async assignTicket(
-    ticketId: number,
-    agentId: number,
-    role: string,
-    userId?: number,
-  ) {
-    if (role === 'user') throw new ForbiddenException('No autorizado');
-
-    const updated = await this.prisma.ticket.update({
-      where: { id: ticketId },
-      data: { assignedToId: agentId },
+  async create(dto: CreateTicketDto, userId: number) {
+    return this.prisma.ticket.create({
+      data: {
+        subject: dto.subject,
+        description: dto.description,
+        priority: dto.priority,
+        categoryId: dto.categoryId,
+        userId,
+      },
     });
-
-    await this.logActivity(
-      ticketId,
-      'assign',
-      `Ticket asignado al agente ${agentId}`,
-      userId,
-    );
-
-    return updated;
   }
 
-  // ========================================
-  // Cambiar estado
-  // ========================================
-  async updateStatus(
-    ticketId: number,
-    status: string,
-    role: string,
-    userId?: number,
-  ) {
-    if (role === 'user') throw new ForbiddenException('No autorizado');
-
-    const updated = await this.prisma.ticket.update({
-      where: { id: ticketId },
-      data: { status },
+  async update(id: number, dto: UpdateTicketDto) {
+    return this.prisma.ticket.update({
+      where: { id },
+      data: dto,
     });
-
-    await this.logActivity(
-      ticketId,
-      'status_change',
-      `Estado cambiado a ${status}`,
-      userId,
-    );
-
-    return updated;
   }
 
-  // ========================================
-  // Timeline de un ticket
-  // ========================================
-  async getTimeline(ticketId: number) {
-    return this.prisma.ticketActivity.findMany({
-      where: { ticketId },
-      orderBy: { createdAt: 'asc' },
+  async remove(id: number) {
+    return this.prisma.ticket.delete({
+      where: { id },
     });
   }
 }

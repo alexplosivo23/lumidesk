@@ -1,76 +1,68 @@
 import {
-  Body,
   Controller,
   Get,
   Param,
   Post,
-  Req,
+  Patch,
+  Delete,
+  Body,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { TicketsService } from './tickets.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { User } from '../auth/user.decorator';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
+
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { User } from '../common/decorators/user.decorator';
 
 @Controller('tickets')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class TicketsController {
-  constructor(private ticketService: TicketsService) {}
+  constructor(private readonly ticketsService: TicketsService) {}
 
-  @Post('create')
-  createTicket(@User() user, @Body() body: any) {
-    console.log("BODY RECIBIDO ===>", body);
-
-    const { title, description, priority, sla, categoryId } = body;
-
-    return this.ticketService.createTicket(
-      user.sub,
-      title,
-      description,
-      priority,
-      sla,
-      categoryId,
-    );
+  @Get()
+  @Roles('agent', 'supervisor', 'superadmin')
+  findFiltered(@Query() query, @User() user) {
+    return this.ticketsService.findFiltered(query, user);
   }
 
-
-  @Get('my')
-  getMyTickets(@User() user) {
-    return this.ticketService.getMyTickets(user.sub);
+  @Get()
+  @Roles('superadmin', 'supervisor', 'agent')
+  findAll() {
+    return this.ticketsService.findAll();
   }
 
-  @Get('all')
-  getAll(@User() user) {
-    return this.ticketService.getAllTickets(user.role);
+  @Get('mine')
+  @Roles('user', 'agent', 'supervisor', 'superadmin')
+  findMine(@User() user) {
+    return this.ticketsService.findMine(user.id);
   }
 
   @Get(':id')
-  getTicket(@Param('id') id: string, @User() user) {
-    return this.ticketService.getTicketById(Number(id), user.sub, user.role);
+  @Roles('user', 'agent', 'supervisor', 'superadmin')
+  findOne(@Param('id') id: string) {
+    return this.ticketsService.findOne(Number(id));
   }
 
-  @Post('assign')
-  assignTicket(
-    @User() user,
-    @Body('ticketId') ticketId: number,
-    @Body('agentId') agentId: number,
-  ) {
-    return this.ticketService.assignTicket(ticketId, agentId, user.role, user.sub);
+  @Post()
+  @Roles('user', 'agent', 'supervisor', 'superadmin')
+  create(@Body() dto: CreateTicketDto, @User() user) {
+    return this.ticketsService.create(dto, user.id);
   }
 
-  @Post('status')
-  updateStatus(
-    @User() user,
-    @Body('ticketId') ticketId: number,
-    @Body('status') status: string,
-  ) {
-    return this.ticketService.updateStatus(ticketId, status, user.role, user.sub);
+  @Patch(':id')
+  @Roles('agent', 'supervisor', 'superadmin')
+  update(@Param('id') id: string, @Body() dto: UpdateTicketDto) {
+    return this.ticketsService.update(Number(id), dto);
   }
 
-  // Obtener timeline de un ticket
-@Get(':id/timeline')
-getTimeline(@Param('id') id: string) {
-  return this.ticketService.getTimeline(Number(id));
-}
-
+  @Delete(':id')
+  @Roles('superadmin')
+  remove(@Param('id') id: string) {
+    return this.ticketsService.remove(Number(id));
+  }
 }

@@ -23,7 +23,7 @@ export default function SidebarDesk() {
 
   return (
     <div className="w-64 h-screen bg-[#303A4B] text-white flex flex-col p-4 shadow-lg">
-      <h1 className="text-2xl font-bold tracking-tight mb-8">Lumidesk</h1>
+      <h1 className="text-2xl font-bold tracking-tight mb-8">intraDesk</h1>
 
       <nav className="flex flex-col gap-2">
         {navItems.map((item) => {

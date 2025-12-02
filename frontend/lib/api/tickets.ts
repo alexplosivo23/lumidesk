@@ -92,23 +92,6 @@ export async function fetchAllTickets() {
   return res.json();
 }
 
-// ==========================================================
-// Cambiar estado de ticket (Agente/Admin)
-// ==========================================================
-export async function updateTicketStatus(ticketId: number, status: string) {
-  const res = await fetch(`${API_URL}/tickets/status`, {
-    method: "POST",
-    ...getOptions(),
-    body: JSON.stringify({ ticketId, status }),
-  });
-
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(txt || "Error al actualizar el estado");
-  }
-
-  return res.json();
-}
 
 export async function addComment(ticketId: number, message: string, internal = false) {
   const res = await fetch(`${API_URL}/comments/add`, {
@@ -173,3 +156,31 @@ export async function reject(approvalId: number, approverId: number, reason?: st
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
+
+export async function updateTicketStatus(id: number, status: string) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/status/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  return res.json();
+}
+export async function fetchMyTickets() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/my`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return res.json();
+
+}
+

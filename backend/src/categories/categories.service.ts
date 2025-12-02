@@ -1,51 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
-  // Crear categoría raíz
-  async create(name: string) {
-    return this.prisma.category.create({
-      data: { name },
+  async findAll() {
+    return this.prisma.category.findMany({
+      include: { helpdesk: true },
     });
   }
 
-  // Crear subcategoría
-  async createSubcategory(name: string, parentId: number) {
+  async findByHelpdesk(helpdeskId: number) {
+    return this.prisma.category.findMany({
+      where: { helpdeskId },
+    });
+  }
+
+  async findOne(id: number) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: { helpdesk: true },
+    });
+
+    if (!category) throw new NotFoundException('Categoría no encontrada');
+
+    return category;
+  }
+
+  async create(dto: CreateCategoryDto) {
     return this.prisma.category.create({
       data: {
-        name,
-        parentId,
+        name: dto.name,
+        helpdeskId: dto.helpdeskId,
       },
     });
   }
 
-  // Obtener árbol de categorías (padres + subcategorías)
-  async getAll() {
-    return this.prisma.category.findMany({
-      where: { parentId: null },
-      include: {
-        subcategories: true, // <- antes era children
-      },
-      orderBy: { name: 'asc' },
-    });
-  }
-
-  // Asignar categoría a ticket
-  async assignCategoryToTicket(ticketId: number, categoryId: number) {
-    return this.prisma.ticket.update({
-      where: { id: ticketId },
-      data: { categoryId },
-    });
-  }
-
-  // Actualizar SLA por defecto de una categoría
-  async updateSla(id: number, defaultSla: string) {
+  async update(id: number, dto: UpdateCategoryDto) {
     return this.prisma.category.update({
       where: { id },
-      data: { defaultSla },
+      data: dto,
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.category.delete({
+      where: { id },
     });
   }
 }

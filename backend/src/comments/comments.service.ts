@@ -1,44 +1,39 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Injectable()
 export class CommentsService {
   constructor(private prisma: PrismaService) {}
 
-  async addComment(ticketId: number, userId: number, message: string, isInternal = false) {
-    if (!message || message.trim() === '') {
-      throw new Error('Message is required');
-    }
+  async findByTicket(ticketId: number) {
+    return this.prisma.comment.findMany({
+      where: { ticketId },
+      include: { user: true },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
 
-    // crear comentario
-    const comment = await this.prisma.comment.create({
-      data: {
-        ticketId,
-        authorId: userId,
-        message,
-        isInternal,
-      },
+  async create(dto: CreateCommentDto, userId: number) {
+    // Si el ticket no existe → error
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { id: dto.ticketId },
     });
 
-    // registrar actividad en el timeline
-    await this.prisma.ticketActivity.create({
+    if (!ticket) throw new NotFoundException('Ticket no encontrado');
+
+    return this.prisma.comment.create({
       data: {
-        ticketId,
-        type: isInternal ? 'internal_comment' : 'comment',
-        message: isInternal
-          ? `Comentario interno agregado por el usuario ${userId}`
-          : `Comentario agregado por el usuario ${userId}`,
+        text: dto.text,
+        ticketId: dto.ticketId,
         userId,
       },
     });
-
-    return comment;
   }
 
-  async getCommentsByTicket(ticketId: number) {
-    return this.prisma.comment.findMany({
-      where: { ticketId },
-      orderBy: { createdAt: 'asc' },
+  async remove(id: number) {
+    return this.prisma.comment.delete({
+      where: { id },
     });
   }
 }

@@ -1,141 +1,86 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createTicket } from "@/lib/api/tickets";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { getCategory, createTicket } from "@/lib/api/portal-tickets";
 
 export default function CreateTicketPage() {
   const router = useRouter();
+  const params = useSearchParams();
+  const categoryId = Number(params.get("category"));
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("P3");
-  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [category, setCategory] = useState<any>(null);
 
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    subject: "",
+    description: "",
+    priority: "P3",
+  });
 
-  // CATEGORÍAS FIJAS PARA DEMO
   useEffect(() => {
-    setCategories([
-      { id: 1, name: "Informática" },
-      { id: 2, name: "RRHH" },
-      { id: 3, name: "Compras" },
-      { id: 4, name: "Mesa de Ayuda" },
-    ]);
-    setLoading(false);
-  }, []);
+    if (categoryId) getCategory(categoryId).then(setCategory);
+  }, [categoryId]);
 
-  async function handleSubmit(e: any) {
-    e.preventDefault();
-    setError("");
+  const handleSubmit = async () => {
+    if (!form.subject.trim()) return alert("Ingrese un asunto");
+    if (!form.description.trim()) return alert("Ingrese una descripción");
 
-    if (!categoryId) {
-      setError("Selecciona una categoría.");
-      return;
-    }
+    const payload = {
+      ...form,
+      categoryId,
+    };
 
-    try {
-      await createTicket(title, description, priority, categoryId);
-      router.push("/portal/tickets");
-    } catch (error) {
-      console.error(error);
-      setError("No se pudo crear el ticket.");
-    }
-  }
+    await createTicket(payload);
+    router.push("/portal/tickets");
+  };
 
-  if (loading) return <p className="p-4">Cargando...</p>;
+  if (!category) return <p>Cargando...</p>;
 
   return (
-    <div className="p-8 max-w-xl mx-auto">
+    <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow">
 
-      {/* BOTÓN VOLVER */}
-      <Link
-        href="/portal/tickets"
-        className="inline-block mb-6 text-blue-600 hover:underline"
-      >
-        ← Volver a mis tickets
-      </Link>
+      <h1 className="text-2xl font-semibold mb-6">Nueva Solicitud</h1>
 
-      <div className="card">
-        <h1 className="text-2xl font-semibold mb-4">Crear Ticket</h1>
+      <p className="text-sm text-gray-600 mb-6">
+        Categoría seleccionada:{" "}
+        <span className="font-medium">{category.name}</span>
+      </p>
 
-        {error && (
-          <p className="text-red-600 mb-3 font-medium">{error}</p>
-        )}
+      <div className="flex flex-col gap-4">
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <input
+          type="text"
+          placeholder="Asunto"
+          className="border p-3 rounded"
+          value={form.subject}
+          onChange={(e) => setForm({ ...form, subject: e.target.value })}
+        />
 
-          {/* CATEGORÍA */}
-          <div>
-            <label className="block mb-1 font-medium">
-              Categoría <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={categoryId ?? ""}
-              onChange={(e) => setCategoryId(Number(e.target.value))}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-600"
-              required
-            >
-              <option value="">Selecciona una categoría</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <textarea
+          placeholder="Describa su problema..."
+          className="border p-3 rounded h-40"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+        />
 
-          {/* TÍTULO */}
-          <div>
-            <label className="block mb-1 font-medium">
-              Título <span className="text-red-500">*</span>
-            </label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-600"
-              required
-            />
-          </div>
-
-          {/* DESCRIPCIÓN */}
-          <div>
-            <label className="block mb-1 font-medium">
-              Descripción <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full border p-2 rounded h-32 resize-none focus:ring-2 focus:ring-blue-600"
-              required
-            />
-          </div>
-
-          {/* PRIORIDAD */}
-          <div>
-            <label className="block mb-1 font-medium">Prioridad</label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-600"
-            >
-              <option value="P1">P1 - Alta</option>
-              <option value="P2">P2 - Media</option>
-              <option value="P3">P3 - Baja</option>
-            </select>
-          </div>
-
-          {/* BOTÓN */}
-          <button
-            type="submit"
-            className="btn-primary w-full">
-            Crear Ticket
-          </button>
-        </form>
+        <select
+          className="border p-3 rounded"
+          value={form.priority}
+          onChange={(e) => setForm({ ...form, priority: e.target.value })}
+        >
+          <option value="P1">P1 - Alta</option>
+          <option value="P2">P2 - Media</option>
+          <option value="P3">P3 - Baja</option>
+        </select>
       </div>
+
+      <button
+        onClick={handleSubmit}
+        className="mt-6 px-6 py-2 bg-[#303a4b] text-white rounded-lg hover:bg-[#1f2937]"
+      >
+        Enviar solicitud
+      </button>
     </div>
   );
 }
+

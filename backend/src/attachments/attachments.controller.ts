@@ -1,49 +1,59 @@
 import {
   Controller,
+  Get,
   Post,
+  Delete,
+  Param,
+  Body,
   UploadedFile,
   UseInterceptors,
-  Body,
   UseGuards,
 } from '@nestjs/common';
+
 import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfig } from '../common/upload';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuthGuard } from '@nestjs/passport';
-import { BadRequestException } from '@nestjs/common';
+import { diskStorage } from 'multer';
+
+import { AttachmentsService } from './attachments.service';
+import { UploadAttachmentDto } from './dto/upload-attachment.dto';
+
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('attachments')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AttachmentsController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly attachmentsService: AttachmentsService) {}
 
-  @Post('upload')
-  @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor('file', multerConfig))
-  async uploadFile(
+  @Get('ticket/:ticketId')
+  @Roles('user', 'agent', 'supervisor', 'superadmin')
+  findByTicket(@Param('ticketId') ticketId: string) {
+    return this.attachmentsService.findByTicket(Number(ticketId));
+  }
+
+  @Post()
+  @Roles('user', 'agent', 'supervisor', 'superadmin')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, `${unique}-${file.originalname}`);
+        },
+      }),
+    })
+  )
+  upload(
     @UploadedFile() file: Express.Multer.File,
-    @Body('ticketId') ticketId: string,
-    @Body('commentId') commentId: string,
+    @Body() dto: UploadAttachmentDto
   ) {
-    if (!file) {
-      return {
-        success: false,
-        message: 'No file received. Check form-data field name = file.',
-      };
-    }
-    if (!ticketId) {
-      throw new BadRequestException("ticketId es obligatorio");
-    }
+    return this.attachmentsService.create(file, dto.ticketId);
+  }
 
-    const attachment = await this.prisma.attachment.create({
-      data: {
-        ticketId: Number(ticketId),
-        fileName: file.originalname,
-        filePath: file.path,
-        mimeType: file.mimetype,
-        size: file.size,
-      },
-    });
-
-    return { success: true, data: attachment };
+  @Delete(':id')
+  @Roles('superadmin')
+  remove(@Param('id') id: string) {
+    return this.attachmentsService.remove(Number(id));
   }
 }
